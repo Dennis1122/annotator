@@ -1,0 +1,404 @@
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="js/Global.js" language="javascript"></script>
+    <script src="js/XMLWriter.js" language="javascript"></script>
+<h2 align="center">IMAGE ANNOTATOR</h2>
+<div id="output"></div>
+<input type="file" id="myFile" size="50" style="margin-left:35%;">
+<button type="button" onclick="uploadFunction()">Upload</button>
+<button id="create">Create XML file</button> <a download="data.xml" id="downloadlink" style="display: none;margin-left: 50%;">Download</a>
+<br/>
+<br/>
+<!-- <input id="fileContainer" type="file">
+<input id="show" type="button" value="Show"> -->
+<!-- <div id="imgContainer"></div> -->
+<!-- <div class="pagination">
+    <a href="#">&laquo;</a>
+    <a href="#" onclick=getPage(1);>1</a>
+    <a href="#" onclick=getPage(2); class="active">2</a>
+    <a href="#"onclick=getPage(3); >3</a>
+    <a href="#">4</a>
+    <a href="#">5</a>
+    <a href="#">6</a>
+    <a href="#">&raquo;</a>
+  </div> -->
+<div id="canvasDiv">
+<canvas id="canvas"  width="1224" height="1584"></canvas>
+</div>
+
+
+<style type="text/css">
+.pagination {
+    display: inline-block;
+}
+
+.pagination a {
+    color: black;
+    float: left;
+    padding: 8px 16px;
+    text-decoration: none;
+}
+
+.pagination a.active {
+    background-color: #4CAF50;
+    color: white;
+    border-radius: 5px;
+}
+
+.pagination a:hover:not(.active) {
+    background-color: #ddd;
+    border-radius: 5px;
+}
+
+canvas {
+    cursor: crosshair;
+    border: 1px solid #000000;
+}
+
+#canvas  
+ { 	
+    /* background-image: url("images/W8IMY2014-page-001.jpg"); */
+    background-size: 100% 100%;
+    /*background-image.naturalWidth*/
+  }
+
+
+</style>
+
+<script>
+    
+
+
+function submitImage(){
+    alert("submit image ");
+    $.ajax({
+                url: "http://localhost:5000/uploader",
+                type: "POST",
+                dataType: "json",
+                data: {
+                    data: data,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                    },
+                success : function(json) {
+                    alert("Successfully sent the URL to Django");
+                },
+                error : function(xhr,errmsg,err) {
+                    alert("Data sucessfully send and processed" + xhr.status + ": " + xhr.responseText);
+                }
+            });
+}
+
+var pos = $('#canvasDiv').offset().top;
+console.log(pos);
+var isAtribute = true;
+var fileName;
+//Canvas
+var canvas = document.getElementById('canvas');
+var ctx = canvas.getContext('2d');
+//Variables
+var canvasx = $(canvas).offset().left;
+var canvasy = $(canvas).offset().top;
+console.log(canvasy);
+//console.log($(window).scrollTop());
+var last_mousex = last_mousey = 0;
+var mousex = mousey = 0;
+var mousedown = false;
+var scrollTop=0
+var startX=startY=endX=endY=0;
+var width=height=0;
+var rect = [];
+var cord = [];
+var cord_WithClass = [];
+// $('#output').html('current: '+mousex+', '+mousey);
+
+var x_correction = 0;
+var y_correction = 0;
+
+$(document).ready(function(){
+    var myElement = document.querySelector("#canvas"); 
+      var position = getPosition(myElement);
+      console.log("The image is located at: " + position.x + ", " + position.y)
+      x_correction = position.x;
+      y_correction = position.y;
+});
+function getPosition(el) {
+  var xPos = 0;
+  var yPos = 0;
+ 
+  while (el) {
+    if (el.tagName == "BODY") {
+      // deal with browser quirks with body/window/document and page scroll
+      var xScroll = el.scrollLeft || document.documentElement.scrollLeft;
+      var yScroll = el.scrollTop || document.documentElement.scrollTop;
+ 
+      xPos += (el.offsetLeft - xScroll + el.clientLeft);
+      yPos += (el.offsetTop - yScroll + el.clientTop);
+    } else {
+      // for all other non-BODY elements
+      xPos += (el.offsetLeft - el.scrollLeft + el.clientLeft);
+      yPos += (el.offsetTop - el.scrollTop + el.clientTop);
+    }
+ 
+    el = el.offsetParent;
+  }
+  return {
+    x: xPos,
+    y: yPos
+  };
+};
+
+//Mousedown
+$(canvas).on('mousedown', function(e) {
+	
+    last_mousex = parseInt(e.clientX-canvasx);
+	last_mousey = parseInt(e.clientY-canvasy);
+    mousedown = true;
+    startX = e.clientX;
+    startY = e.clientY;
+});
+
+
+
+
+//Mouseup
+$(canvas).on('mouseup', function(e) {
+    mousedown = false;
+    endX = e.clientX;
+    endY = e.clientY;
+    //console.log('mouse up-->>',last_mousex,last_mousey+scrollTop,width,height);
+    if(width>10){
+    //console.log("rect-->>",rect);
+    //console.log("cord-->>",cord);
+    //isAtribute = !isAtribute;
+    var cls = popUp();
+
+    //console.log(cls);
+    if (cls !=null){
+    cls = cls.toLowerCase();
+    var rectTemp=[last_mousex+scrollLeft,last_mousey+scrollTop,width,height];
+    rect.push(rectTemp);
+    var cordTemp=[last_mousex+scrollLeft,last_mousey+scrollTop,last_mousex+width,last_mousey+scrollTop+height];
+    cord.push(cordTemp);
+    var cord_WithClassTemp=[cls,last_mousex,last_mousey+scrollTop,last_mousex+width,last_mousey+scrollTop+height];
+    cord_WithClass.push(cord_WithClassTemp);
+    console.log(cord_WithClass);
+    }
+
+    }
+});
+
+//Mousemove
+$(canvas).on('mousemove', function(e) {
+	//scrollTop = $(window).scrollTop()-$('#canvasDiv').position().top;
+
+    // scrollTop = $(window).scrollTop()-y_correction;
+    // scrollLeft = $(window).scrollLeft()-x_correction;
+
+    scrollTop = $(window).scrollTop();
+    scrollLeft = $(window).scrollLeft();
+	//scrollTop = scrollTop;
+    mousex = parseInt(e.clientX-canvasx);
+	mousey = parseInt(e.clientY-canvasy);
+    if(mousedown) {
+        ctx.clearRect(0,0,canvas.width,canvas.height); //clear canvas
+        ctx.beginPath();
+        width = mousex-last_mousex;
+        height = mousey-last_mousey;
+        ctx.rect(last_mousex+scrollLeft,last_mousey+scrollTop,width,height);
+        //console.log('mouse move-->>',last_mousex,last_mousey+scrollTop,width,height);
+        rect.forEach(element => {
+        ctx.rect(element[0],element[1],element[2],element[3]);
+        //console.log('mouse up-->>',rect);
+    });
+        
+        if(isAtribute==true){
+            ctx.strokeStyle = 'red';
+        }
+        else{
+            ctx.strokeStyle = 'green';
+        }
+        
+        ctx.lineWidth = 1;
+        ctx.stroke();
+    }
+
+    //Output
+    // $('#output').html('current: '+mousex+', '+mousey);
+
+    
+    //console.log('current: '+mousex+', '+mousey);
+});
+
+
+
+
+function uploadFunction(){
+    var x = document.getElementById("myFile").value;
+    var str_array = x.split('\\');
+    fileName = (str_array[2]);
+    cord_WithClass = [];
+    rect=[];
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    var link = document.getElementById('downloadlink');
+    link.style.display = 'none';
+    //cord_WithClass.push(fileName);
+    document.getElementById('canvas').style.backgroundImage = "url(images/" + fileName + ")";
+    //alert("url(images/" + str_array[2] + ")")
+}
+function popUp() {
+    //alert("popup function");
+    var txt;
+    var className = prompt("Please enter Class name:", "line");
+    
+    // if (className == null || className == "") {
+    //     var className = prompt("Please enter Class name:", "Class 1");
+    // }
+    return className;
+    //document.getElementById("demo").innerHTML = txt;
+}
+
+$('input#fileContainer').on('change', function () {
+    console.log(this);
+
+    var reader = new FileReader();
+    reader.onload = function (e) {
+        console.log(reader.result + '->' + typeof reader.result)
+        var thisImage = reader.result;
+        localStorage.setItem("imgData", thisImage);
+    };
+    reader.readAsDataURL(this.files[0]);
+});
+
+(function () {
+var textFile = null,
+  makeTextFile = function (text) {
+    var data = new Blob([text], {type: 'text/plain'});
+
+    // If we are replacing a previously generated file we need to
+    // manually revoke the object URL to avoid memory leaks.
+    if (textFile !== null) {
+      window.URL.revokeObjectURL(textFile);
+    }
+
+    textFile = window.URL.createObjectURL(data);
+
+    return textFile;
+  };
+
+//create downlaodable file
+  var create = document.getElementById('create'),
+    textbox = document.getElementById('textbox');
+
+  create.addEventListener('click', function () {
+    //alert('inside function');
+    var link = document.getElementById('downloadlink');
+    var name = fileName.split('.');
+    link.download=name[0]+".xml";
+    var xmlData = createXml(cord_WithClass);
+    link.href = makeTextFile(xmlData);
+    link.style.display = 'block';
+  }, false);
+  
+})();
+
+function createXml(data)
+        {
+            try
+            {
+                //debugger;
+                var xmlTags = ['name','xmin','ymin','xmax','ymax'];
+                var obj = data[0];
+                console.log(obj);
+                console.log(obj[1]);
+                //console.log(data[0]);
+                // var Frm=Settings.SrcElement(e);
+                var XML=new XMLWriter();
+                XML.BeginNode("annotation");
+                XML.Node('folder', 'images');
+                XML.Node('filename', fileName);
+                XML.Node('path', "/annotator/images/"+fileName);
+
+                XML.BeginNode('source');
+                XML.Node('database', "Unknown");
+                XML.EndNode('end node');
+
+                XML.BeginNode('size');
+                XML.Node('width', "0");
+                XML.Node('height', "0");
+                XML.Node('depth', "3");
+                XML.EndNode('end node');
+
+                XML.Node('segmented', "0")
+
+
+                // //XML.Attrib("Example", "Attribute & Value");
+                 for (var i=0;i<data.length;i++){
+                    XML.BeginNode('object');
+                    XML.Node(xmlTags[0], (data[i][0]).toString());
+                    XML.Node('pose', "Unspecified");
+                    XML.Node('truncated', "0");
+                    XML.Node('difficult', "0");
+                    XML.BeginNode('bndbox');
+                    for (var j=1;j<xmlTags.length;j++){
+                      XML.Node(xmlTags[j], (data[i][j]).toString());
+
+                      //XML.Node("hihi", "data");
+                    }
+                    XML.EndNode('end node');
+                    XML.EndNode('end node');
+                 }
+                    //XML.Node(Nodes[i].name, Nodes[i].value);
+                XML.EndNode('end node');
+                XML.Close();
+                var xmlData = XML.ToString().replace(/</g,"\n<");
+                console.log(xmlData);
+                return xmlData;
+            }
+            catch(Err)
+            {
+                alert("Error: " + Err.description);
+            }
+            return false;
+        }
+
+</script>
+
+    <script language="javascript" type="text/javascript">
+
+        function WriteForm()
+        {
+            try
+            {
+                debugger;
+                var xmlTags = ['name','xmin','ymin','xmax','ymax'];
+                var obj = data[0];
+                console.log(obj);
+                console.log(obj[1]);
+                //console.log(data[0]);
+                // var Frm=Settings.SrcElement(e);
+                var XML=new XMLWriter();
+                XML.BeginNode("annotation");
+
+                XML.Node('File Name', fileName);
+                console.log(data[0][0]);
+                // //XML.Attrib("Example", "Attribute & Value");
+                 for (var i=0;i<data.length;i++){
+                    for (var j=0;j<xmlTags.length;j++){
+                      XML.Node(xmlTags[j], (data[i][j]).toString());
+                      //XML.Node("hihi", "data");
+                    }
+                 }
+                    //XML.Node(Nodes[i].name, Nodes[i].value);
+                XML.EndNode('end node');
+                XML.Close();
+                var xmlData = XML.ToString().replace(/</g,"\n<");
+                console.log(xmlData);
+                return xmlData;
+            }
+            catch(Err)
+            {
+                alert("Error: " + Err.description);
+            }
+            return false;
+        }
+
+    </script>
