@@ -3,8 +3,8 @@ image annotator
 
 
 def predict_file(request):
+	
 	cordinates = []
-
 	cords = request.POST.get('cords')
 	cords = cords.split(",")
 	print("cords--->>>",cords)
