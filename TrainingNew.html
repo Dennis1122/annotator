@@ -1,0 +1,503 @@
+<!doctype html>
+<html><head>
+    <meta charset="utf-8">
+    <title>ML Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    {% load static %}
+    <!-- Le styles -->
+    <link rel="stylesheet" type="text/css" href="{% static '/Demo/bootstrap/css/bootstrap.min.css' %}" />
+    <link href="{% static '/Demo/css/table.css' %}" rel="stylesheet">
+    <link href="{% static '/Demo/css/main.css' %}" rel="stylesheet">
+    <link href="{% static '/Demo/css/font-style.css' %}" rel="stylesheet">
+    <link href="{% static '/Demo/css/register.css' %}" rel="stylesheet">
+
+
+	<script type="text/javascript" src="{% static '/Demo/js/jquery.js' %}"></script>    
+    <script type="text/javascript" src="{% static '/Demo/bootstrap/js/bootstrap.min.js' %}"></script>
+     <script type="text/javascript" src="{% static '/Demo/js/admin.js' %}"></script>
+    <style type="text/css">
+      body {
+        padding-top: 60px;
+      }
+      #progressbar-outer {
+    height:2em;
+    border:5px solid #000;
+    width:15em;
+}
+#progressbar {
+    width:0%;
+    background-color:#F00;
+    height:100%;
+}
+
+canvas {
+    cursor: crosshair;
+    border: 1px solid #000000;
+}
+
+#canvas  
+ { 	
+    background-image: url("{% static '/Demo/images/W8IMY2014/W8IMY2014-page-001.jpg' %}");
+    /*background-image: url("{% static '/Demo/images/W8IMY2017/W8IMY2017-page-001.jpg' %}");*/
+    background-size: 100% 100%;
+    /*background-image.naturalWidth*/
+  }
+    </style>
+
+	<link href="http://fonts.googleapis.com/css?family=Raleway:400,300" rel="stylesheet" type="text/css">
+  	<link href="http://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" type="text/css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	</head>
+  <body>
+
+  	<!-- NAVIGATION MENU -->
+
+    <div class="navbar-nav navbar-inverse navbar-fixed-top">
+        <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/Demo/Home/">Cognitive Computing Suite</a>
+        </div> 
+          <div class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+                      <li><a href="/Demo/Demo_Train_page_load_cls/"><i class="icon-home icon-white"></i>Train Model</a></li>
+       
+               <li><a href="/Demo/Demo_page_load_cls/"><i class="icon-home icon-white"></i>Attribute Extraction</a></li>
+
+               <li><a href="/Demo/Demo_Train_page_load_cls_old/"><i class="icon-home icon-white"></i>About</a></li>
+                         
+              
+
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+    </div>
+
+    <div class="">
+        <div class="row">
+
+
+
+
+<div class="col-lg-12">
+<div class="col-lg-12">
+  <form action="/Demo/submit_to_train/" method="POST" enctype="multipart/form-data">
+     {% csrf_token %}
+            <div class="register-info-wraper">
+          
+              <div id="register-info">
+                 
+                <div class="cont2">
+                  <h2>Upload file (*.pdf)</h2><hr>
+                  <div class="thumbnail">
+              </div><!-- /thumbnail -->
+       
+                </div>
+                <div class="row" align="center">
+
+                  <div class="col-md-7" style="text-align: right;">
+                    <div class="cont3">
+ <input type="file" id="file" class="btnnew" name="myfile" style="margin-left: 400px;" />
+                    </div>
+                  </div>
+                  <div class="col-md-5" style="text-align: left;>
+                    <div class="cont3">
+<button type="submit" onclick = "show();" id="upbtn" class="btn btn-success">Upload</button>
+                    </div>
+                  </div>
+<!--                   <div class="col-md-3">
+                    <div class="cont3">
+<a onclick = "loading();" class="btn btn-success">Process</a>
+                    </div>
+                  </div> -->
+                </div><!-- /inner row -->
+ 
+ 
+            <br>
+
+
+                
+              </div>
+            </div>
+</form>
+          </div>
+
+              <div id = "myLoadingDiv" style="display:none;">
+        <img style="position:absolute;
+    left:31%; 
+    top:25%;" style=""  width="220" height="220" src="{% static '/Demo/images/loading.gif' %}" alt="loading"/> </div>
+
+<div class="col-md-12" id="featureDiv" style="display:none;">
+            <div class="pagination col-md-6" style="font-size: 20px;text-align: right;">
+                <a href="#">&laquo;</a>
+                <a href="#" class="active" onclick=getPage(1);>1</a>
+                <a href="#" onclick=getPage(2); >2</a>
+                <a href="#" onclick=getPage(3); >3</a>
+                <a href="#" onclick=getPage(4); >4</a>
+                <a href="#" onclick=getPage(5); >5</a>
+                <a href="#" onclick=getPage(6); >6</a>
+                <a href="#">&raquo;</a>
+              </div>
+            <div class="col-md-6">
+            <button type="button" id="submitCords" class="btn btn-success" style="margin-top: 15px"> Submit Features</button>
+            
+            <br>
+            <br>
+            </div>
+</div>
+            <!-- <div id="output" style="color:azure"></div> -->
+            <div id="canvasDiv" style="display: none;">
+            <canvas id="canvas"  width="1268" height="1656" style="width:1268px;"></canvas>
+            </div>
+
+            <div class="col-lg-12">
+
+              <div class="register-info-wraper">
+                 <hr>
+                <div id="register-info">
+           
+
+        	<div class="cont2">
+  
+            </div>
+            <br>
+              <div class="info-user2">
+                <span aria-hidden="true" class="li_user fs1"></span>
+                <span aria-hidden="true" class="li_settings fs1"></span>
+                <span aria-hidden="true" class="li_mail fs1"></span>
+                <span aria-hidden="true" class="li_key fs1"></span>
+                <span aria-hidden="true" class="li_lock fs1"></span>
+                <span aria-hidden="true" class="li_pen fs1"></span>
+              </div>
+
+                
+              </div>
+
+
+      
+
+	<div id="footerwrap">
+      	<footer class="clearfix"></footer>
+      	<div class="container">
+      		<div class="row">
+      			<div class="col-sm-12 col-lg-12">
+      			<p><img width="150" height="130" src="{% static '/Demo/images/Robotics_Logo.png' %}" alt="loading" /></p>
+      			<p></p>
+      			</div>
+
+      		</div><!-- /row -->
+      	</div><!-- /container -->		
+	</div><!-- /footerwrap -->  
+</body>
+
+<script>
+
+//Send Data
+
+var URL = "{% url 'predict_file' %}";
+var fileName = "{{myfile|safe}}";
+
+$(document).ready(function() {
+
+
+
+  if("{{myfile|safe}}"){
+    
+    //document.getElementById("myLoadingDiv").style.display = "block";
+      document.getElementById('featureDiv').style.display = "block";
+      document.getElementById('canvasDiv').style.display = "block";
+    }
+
+  //document.getElementById("myLoadingDiv").style.display = "none";
+
+  
+  // var filename = {{myfile}};
+  // alert(filename);        
+        $("#submitCords").click(function() {
+            var cords = cord.toString();
+            var attr = attribute.toString();
+            var val = values.toString();
+            console.log("rect data-->>",cords);
+            //alert(rect);
+            $.ajax({
+                url: "/Demo/predict_file/",
+                type: "POST",
+                dataType: "json",
+                data: {
+                    cords: cords,
+                    attributes: attr,
+                    values: val,
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                    },
+                success : function(json) {
+                    alert("Successfully sent the URL to Django");
+                },
+                error : function(xhr,errmsg,err) {
+                    alert("Data sucessfully send and processed" + xhr.status + ": " + xhr.responseText);
+                }
+            });
+        });
+    });
+
+
+//pagination
+
+function getPage(pgNbr){
+alert(fileName);
+var temp = fileName.split('.');
+var fName = temp[0];
+ctx.clearRect(0,0,canvas.width,canvas.height); //clear canvas
+rect = [];
+	switch(pgNbr) {
+    case 1:
+        document.getElementById('canvas').style.backgroundImage = "url({% static '/Demo/images/W8IMY2014/W8IMY2014-page-001.jpg' %})";
+        break;
+    case 2:
+        document.getElementById('canvas').style.backgroundImage = "url({% static '/Demo/images/W8IMY2014/W8IMY2014-page-002.jpg' %})";
+        break;
+	case 3:
+		document.getElementById('canvas').style.backgroundImage = "url({% static '/Demo/images/W8IMY2014/W8IMY2014-page-003.jpg' %})";
+		break;
+    case 4:
+        document.getElementById('canvas').style.backgroundImage = "url({% static '/Demo/images/W8IMY2014/W8IMY2014-page-004.jpg' %})";
+        break;
+    case 5:
+        //var link = "url({% static '/Demo/images/' %})"+fName;
+        alert(link);
+        document.getElementById('canvas').style.backgroundImage = "url({% static '/Demo/images/W8IMY2014/W8IMY2014-page-005.jpg' %})";
+        break;
+    case 6:
+        document.getElementById('canvas').style.backgroundImage = "url({% static '/Demo/images/W8IMY2014/W8IMY2014-page-006.jpg' %})";
+        break;
+    default:
+        alert("No more pages");
+}
+
+ }
+
+
+//Canvas rendering
+
+var pos = $('#canvasDiv').offset().top;
+console.log(pos);
+var isAtribute = true;
+
+//Canvas
+var canvas = document.getElementById('canvas');
+var ctx = canvas.getContext('2d');
+//Variables
+var canvasx = $(canvas).offset().left;
+var canvasy = $(canvas).offset().top;
+console.log(canvasy);
+//console.log($(window).scrollTop());
+var last_mousex = last_mousey = 0;
+var mousex = mousey = 0;
+var mousedown = false;
+var scrollTop=0
+var startX=startY=endX=endY=0;
+var width=height=0;
+var rect = [];
+var cord = [];
+//var cord_WithClass = [];
+var cls;
+var attribute = [];
+var values = [];
+$('#output').html('current: '+mousex+', '+mousey+'<br/>last: '+last_mousex+', '+last_mousey+'<br/>mousedown: '+mousedown+'<br/>start cord:'+startX+','+startY+' end cord:'+endX+','+endY);
+//Mousedown
+$(canvas).on('mousedown', function(e) {
+	
+    last_mousex = parseInt(e.clientX-canvasx);
+	last_mousey = parseInt(e.clientY-canvasy);
+    mousedown = true;
+
+    startX = e.clientX;
+    startY = e.clientY;
+    console.log('startX,startY',startX,startY);
+});
+
+
+
+
+//Mouseup
+$(canvas).on('mouseup', function(e) {
+    mousedown = false;
+    endX = e.clientX;
+    endY = e.clientY;
+    //console.log('mouse up-->>',last_mousex,last_mousey+scrollTop,width,height);
+
+    //console.log("rect-->>",rect);
+    //console.log("cord-->>",cord);
+    
+    
+    // debugger;
+   
+    if(width>10){
+            if(cls==null){
+                cls = popUp();
+                cls = cls.toLowerCase();
+                var rectTemp=[last_mousex+scrollLeft,last_mousey+scrollTop,width,height];
+                rect.push(rectTemp);
+                var cordTemp=[last_mousex+scrollLeft,last_mousey+scrollTop,last_mousex+width,last_mousey+scrollTop+height];
+                cord.push(cordTemp);
+
+                var attributeTemp=[cls,last_mousex+scrollLeft,last_mousey+scrollTop,last_mousex+width,last_mousey+scrollTop+height];
+                attribute.push(attributeTemp);
+                console.log("attribute-->>",attribute); 
+                isAtribute = !isAtribute;
+            }else{
+                var rectTemp=[last_mousex+scrollLeft,last_mousey+scrollTop,width,height];
+                rect.push(rectTemp);
+                var cordTemp=[last_mousex+scrollLeft,last_mousey+scrollTop,last_mousex+width,last_mousey+scrollTop+height];
+                cord.push(cordTemp);
+
+                var valuesTemp=[cls,last_mousex+scrollLeft,last_mousey+scrollTop,last_mousex+width,last_mousey+scrollTop+height];
+                values.push(valuesTemp);
+                console.log("value-->>",values);
+                cls=null;
+                isAtribute = !isAtribute;
+            }
+  }
+        // isAtribute = !isAtribute;
+    // }
+
+    
+    //console.log(cls);
+
+    // console.log(cls);
+    // var cord_WithClassTemp=[cls,last_mousex,last_mousey+scrollTop,last_mousex+width,last_mousey+scrollTop+height];
+    // cord_WithClass.push(cord_WithClassTemp);
+    // console.log(cord_WithClass);
+});
+
+//Mousemove
+$(canvas).on('mousemove', function(e) {
+	//scrollTop = $(window).scrollTop()-$('#canvasDiv').position().top;
+    scrollTop = $(window).scrollTop()-321;
+    scrollLeft = $(window).scrollLeft();
+	//scrollTop = scrollTop;
+    mousex = parseInt(e.clientX-canvasx);
+	mousey = parseInt(e.clientY-canvasy);
+    //console.log(e.clientY,canvasy,mousey);
+    if(mousedown) {
+        ctx.clearRect(0,0,canvas.width,canvas.height); //clear canvas
+        ctx.beginPath();
+        width = mousex-last_mousex;
+        height = mousey-last_mousey;
+        ctx.rect(last_mousex+scrollLeft,last_mousey+scrollTop,width,height);
+        //console.log('mouse move-->>',last_mousex,last_mousey+scrollTop,width,height);
+        rect.forEach(element => {
+        ctx.rect(element[0],element[1],element[2],element[3]);
+        //console.log('mouse up-->>',rect);
+    });
+
+        
+        if(isAtribute==true){
+            ctx.strokeStyle = 'red';
+        }
+        else{
+            ctx.strokeStyle = 'green';
+        }
+        
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
+
+    //Output
+
+    $('#output').html('current: '+mousex+', '+mousey+'<br/>last: '+last_mousex+', '+last_mousey+'<br/>mousedown: '+mousedown+'<br/>start cord:'+startX+','+startY+' end cord:'+endX+','+endY);
+    //console.log(mousex,mousey);
+});
+
+    function popUp() {
+    //alert("popup function");
+    var txt;
+    var className = prompt("Please enter Attribute name:", "Attribute 1");
+    
+    // if (className == null || className == "") {
+    //     var className = prompt("Please enter Class name:", "Class 1");
+    // }
+    return className;
+    //document.getElementById("demo").innerHTML = txt;
+}
+</script>
+
+<script type="text/javascript">
+
+
+
+  function show(){
+    
+      //alert('inside show');
+      var filename = document.getElementById("file");
+      if(filename.value.trim()== "")
+      {
+        return false;
+      }
+      
+      myDiv.style.display = "block";
+      //loading();
+      document.getElementById('myDiv').innerHTML = "Loading the document. . . ";
+
+    };
+  
+  function loading()
+  {
+    // alert({{page_no|safe}});
+    // alert({{board_members}});
+  
+    //console.log('Loading');
+    document.getElementById('loading').style.display = "block";
+    document.getElementById('loading').innerHTML = "Reading the document. . . ";
+  //   window.setInterval(function(
+  //     document.getElementById('loading').innerHTML = "Page Classification. . . ";)
+  // ,1000);
+  var myVar = setInterval(myTimer, 3000);
+  function myTimer() {
+      document.getElementById("loading").innerHTML = "Page Classification. . . ";
+  }
+  
+  var myVar = setInterval(myTimer1, 4000);
+  function myTimer1() {
+      document.getElementById("loading").innerHTML = "Page Identified. . . ";
+  }
+  
+  var myVar = setInterval(myTimer2, 5000);
+  function myTimer2() {
+    //alert("hi2");
+      document.getElementById("loading").innerHTML = "Attribute Identification. . . ";
+  }
+  
+  var myVar = setInterval(myTimer3, 6000);
+  function myTimer3() {
+  
+      document.getElementById("loading").innerHTML = "Filtering. . . ";
+  }
+  
+  var myVar = setInterval(myTimer4, 7000);
+  function myTimer4() {
+  
+      document.getElementById("loading").innerHTML = "Completed!!";
+      //document.getElementById('loading').style.display = "none";
+      
+      //document.getElementById('pgNbr').style.display = "block";
+      document.getElementById('directors').style.display = "block";
+  }
+  var myVar = setInterval(myTimer5, 7500);
+  function myTimer5() {
+  
+     
+      //document.getElementById('pgNbr').style.display = "block";
+      document.getElementById('directors').style.display = "block";
+      document.getElementById('loading').style.display = "none";
+  }
+  
+  };
+  </script>
+
+</html>
