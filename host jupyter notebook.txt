@@ -1,0 +1,66 @@
+sd-6cd4-5690
+o7kWYA5b
+
+Mahadevan details
+--------------------
+001 888 435 7612 -->>
+mm25652
+138420
+044 66160341
+
+ http://H21DGFT02PS0253:9999/
+
+shutdown -r +1 “Server will restart in 1 minutes. Please save your work.”
+
+
+Linux: /home/USERNAME/.jupyter/jupyter_notebook_config.py
+Windows: C:\Users\USERNAME\.jupyter\jupyter_notebook_config.py
+server : /root/.jupyter/jupyter_notebook_config.py
+
+create config file
+----------------------
+
+$ jupyter notebook --generate-config
+
+generate pwd
+------------------------------
+
+jupyter notebook password
+Enter password:  ****
+Verify password: ****
+[NotebookPasswordApp] Wrote hashed password to /Users/you/.jupyter/jupyter_notebook_config.json
+ Wrote hashed password to /root/.jupyter/jupyter_notebook_config.json
+
+
+create hashed pwd
+-----------------
+In [1]: from notebook.auth import passwd
+In [2]: passwd()
+Enter password:
+Verify password:
+Out[2]: 'sha1:67c9e60bb8b6:9ffede0825894254b2e042ea597d771089e11aed'
+
+add to config.py file
+c.NotebookApp.password = u'sha1:67c9e60bb8b6:9ffede0825894254b2e042ea597d771089e11aed'
+
+
+create ssl certificate
+-----------------------
+
+jupyter notebook --certfile=mycert.pem --keyfile mykey.key
+
+
+changes to jupyter_notebook_config.py
+---------------------------------------
+
+# Set options for certfile, ip, password, and toggle off
+# browser auto-opening
+c.NotebookApp.certfile = u'/absolute/path/to/your/certificate/mycert.pem'
+c.NotebookApp.keyfile = u'/absolute/path/to/your/certificate/mykey.key'
+# Set ip to '*' to bind on all interfaces (ips) for the public server
+c.NotebookApp.ip = '*'
+c.NotebookApp.password = u'sha1:bcd259ccf...<your hashed password here>'
+c.NotebookApp.open_browser = False
+
+# It is a good idea to set a known, fixed port for server access
+c.NotebookApp.port = 9999
